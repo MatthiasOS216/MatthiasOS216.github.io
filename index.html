@@ -1,0 +1,891 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="A tour of ELVN OS, hosted by 11.">
+<title>ELVN OS Tour</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=Hanken+Grotesk:wght@400;500;600&display=swap">
+<style>
+/* Layout: one fixed deep-space stage driven by a tall invisible scroll track; 11 is the camera's subject, words sit directly on space. */
+:root{
+  --void:#04050a;        /* space, faintly blue */
+  --ink:#eef1f7;         /* primary text */
+  --mute:#8e97ab;        /* secondary text */
+  --silver:#c9d1de;      /* brand silver */
+  --volt:#3f86ff;        /* brand electric blue */
+  --volt-hot:#a9d0ff;    /* lightning core */
+  --display:"Michroma","Eurostile","Arial Black",sans-serif;
+  --body:"Hanken Grotesk","Helvetica Neue",Arial,sans-serif;
+  color-scheme:dark;
+}
+html,body{background:var(--void);color:var(--ink)}
+body{font-family:var(--body);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+/* ---------- static article: the readable version (reduced motion / no script) ---------- */
+.article{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:48px 80px;max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:56px}
+.article header{display:flex;flex-direction:column;align-items:center;gap:20px;text-align:center}
+.article .wm{width:min(320px,70vw);height:auto}
+.article .wm-row{display:flex;align-items:center;gap:14px}
+.article .os{font-family:var(--display);font-size:clamp(28px,6vw,48px);color:var(--silver);letter-spacing:.06em}
+.article .eleven-still{width:min(300px,70vw)}
+.article h2{font-family:var(--display);font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--volt);margin:0 0 12px;font-weight:400}
+.article p{margin:0 0 12px;font-size:18px;max-width:62ch}
+.article .app-list{display:flex;flex-direction:column;gap:28px;margin:0;padding:0;list-style:none}
+.article .app-list li{display:grid;grid-template-columns:64px 1fr;gap:16px;align-items:start}
+.article .app-list li>div{min-width:0}
+.article .app-list h3{font-family:var(--display);font-size:17px;margin:4px 0 2px;font-weight:400;letter-spacing:.04em}
+.article .role{color:var(--volt-hot);font-size:14px;margin-bottom:4px}
+.article .say{font-size:clamp(26px,5vw,40px);font-weight:500;line-height:1.15;text-wrap:balance}
+
+html.engine .article{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;padding:0;margin:-1px}
+.stage,.track,.hud{display:none}
+html.engine .stage{display:block}
+html.engine .track{display:block}
+html.engine .hud{display:flex}
+
+/* ---------- stage ---------- */
+.stage{position:fixed;inset:0;overflow:hidden;z-index:1}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#sky{z-index:0}
+#fx{z-index:40;pointer-events:none}
+
+#char{z-index:20}
+.eleven-flat{position:absolute;left:0;top:0;transform-origin:50% 40%;z-index:20;will-change:transform;display:none}
+.eleven-flat img{width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none}
+.loading{left:50%;top:58%;transform:translateX(-50%);font-family:var(--display);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--mute);opacity:1;transition:opacity .4s}
+.tile{position:absolute;left:0;top:0;transform-origin:50% 50%;will-change:transform,opacity;opacity:0;display:flex;flex-direction:column;align-items:center}
+.tile .ico{width:100%;aspect-ratio:1;border-radius:23%;overflow:hidden;position:relative}
+.tile .ico img{width:100%;height:100%;display:block}
+.tile .ico.ph{background:radial-gradient(120% 90% at 30% 20%,#1b1f29 0%,#07080c 70%);box-shadow:inset 0 0 0 2px #8b93a3,inset 0 0 0 3px #1c1f27}
+.tile .ico.ph svg{position:absolute;inset:18%;width:64%;height:64%}
+.tile .ico.shield{background:radial-gradient(120% 90% at 30% 20%,#141822 0%,#05060a 70%);box-shadow:inset 0 0 0 2px #8b93a3,inset 0 0 0 3px #1c1f27}
+.tile .ico.shield img{width:76%;height:76%;margin:12%}
+.tile .name{font-family:var(--display);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--silver);margin-top:10px;white-space:nowrap}
+
+/* words on space */
+.layer{position:absolute;z-index:50;opacity:0;pointer-events:none}
+.hero-brand{left:50%;width:max-content;top:max(7vh,calc(env(safe-area-inset-top,0px) + 28px));display:flex;flex-direction:column;align-items:center;gap:14px;opacity:1}
+.hero-brand .welcome{font-family:var(--display);font-size:clamp(11px,1.1vw,14px);letter-spacing:.32em;text-transform:uppercase;color:var(--mute)}
+.wm-row{display:flex;align-items:flex-end;gap:clamp(10px,1.2vw,18px)}
+.hero-brand .wm{height:clamp(44px,7.4vh,86px);width:auto;display:block}
+.hero-brand .os{font-family:var(--display);font-size:clamp(30px,5.2vh,62px);line-height:.9;color:var(--silver);letter-spacing:.04em;padding-bottom:.04em}
+
+.corner-brand{left:max(20px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 18px);display:flex;align-items:flex-end;gap:8px}
+.corner-brand .wm{height:22px;width:auto}
+.corner-brand .os{font-family:var(--display);font-size:16px;line-height:1;color:var(--silver)}
+
+.speech{position:absolute;z-index:50;left:0;top:0;width:min(30vw,430px);pointer-events:none}
+.speech .line p{font-size:clamp(16px,1.25vw,19px);font-weight:400;color:var(--mute);line-height:1.45;margin:16px 0 0;letter-spacing:0}
+.speech .line{position:absolute;left:0;top:0;width:100%;opacity:0;font-weight:500;font-size:clamp(28px,3.1vw,50px);line-height:1.1;letter-spacing:-.01em;text-wrap:balance}
+.speech .line small{display:block;font-family:var(--display);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--volt);margin-bottom:14px;font-weight:400}
+.caret{display:inline-block;width:.08em;height:.9em;background:var(--volt-hot);margin-left:.06em;vertical-align:-.08em;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+.why{left:46vw;top:50%;transform:translateY(-50%);width:min(44vw,640px)}
+.eyebrow{font-family:var(--display);font-size:12px;letter-spacing:.26em;text-transform:uppercase;color:var(--volt);margin:0 0 22px}
+.why p.wl{margin:0 0 .55em;font-size:clamp(20px,2vw,31px);line-height:1.22;font-weight:500;letter-spacing:-.005em;opacity:.16;text-wrap:balance}
+.why p.goal{font-family:var(--display);font-size:clamp(17px,1.55vw,24px);line-height:1.35;letter-spacing:.02em;color:var(--volt-hot);margin-top:.9em;font-weight:400}
+
+.caption{left:50%;top:calc(9vh + env(safe-area-inset-top,0px));transform:translateX(-50%);text-align:center;width:min(90vw,640px)}
+.caption .big{font-size:clamp(26px,2.8vw,44px);font-weight:500;line-height:1.1}
+.caption .small{color:var(--mute);font-size:clamp(15px,1.2vw,18px);margin-top:10px}
+
+.panel{left:57vw;top:50%;transform:translateY(-50%);width:min(36vw,520px)}
+.panel .count{font-family:var(--display);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--mute);margin-bottom:18px;font-variant-numeric:tabular-nums}
+.panel h3{font-family:var(--display);font-weight:400;font-size:clamp(30px,3.6vw,58px);line-height:1;margin:0 0 14px;letter-spacing:.02em;color:var(--ink)}
+.panel .role{color:var(--volt-hot);font-size:clamp(15px,1.15vw,18px);font-weight:500;margin-bottom:16px;letter-spacing:.01em}
+.panel .desc{font-size:clamp(18px,1.55vw,24px);line-height:1.35;margin:0;text-wrap:pretty}
+.panel .note{margin-top:18px;color:var(--mute);font-size:13px}
+.panel .swap{transition:opacity .28s ease,transform .28s ease}
+.panel .swap.out{opacity:0;transform:translateY(8px)}
+
+.intel{left:60vw;top:50%;transform:translateY(-50%);width:min(36vw,520px)}
+.intel h3{font-family:var(--display);font-weight:400;font-size:clamp(26px,2.8vw,44px);line-height:1.1;margin:0 0 18px}
+.intel p{font-size:clamp(18px,1.5vw,23px);line-height:1.38;margin:0 0 .7em}
+
+.outro{left:50%;bottom:calc(9vh + env(safe-area-inset-bottom,0px));transform:translateX(-50%);text-align:center;width:min(90vw,620px)}
+.outro p{font-size:clamp(17px,1.4vw,21px);color:var(--mute);margin:0}
+
+.hint{left:50%;bottom:calc(4vh + env(safe-area-inset-bottom,0px));transform:translateX(-50%);font-family:var(--display);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:8px}
+.hint svg{width:16px;height:16px;animation:nudge 1.8s ease-in-out infinite}
+@keyframes nudge{50%{transform:translateY(5px)}}
+
+/* hud: where you are + step controls */
+.hud{position:fixed;z-index:60;right:max(20px,env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));align-items:center;gap:14px}
+.hud .where{font-family:var(--display);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute);font-variant-numeric:tabular-nums;text-align:right}
+.hud .where b{color:var(--ink);font-weight:400}
+.hud button{appearance:none;background:none;border:1px solid #2b3140;color:var(--ink);width:40px;height:40px;border-radius:50%;display:grid;place-items:center;cursor:pointer;transition:border-color .2s,background .2s}
+.hud button:hover{border-color:var(--volt);background:#0b1224}
+.hud button:focus-visible{outline:2px solid var(--volt-hot);outline-offset:3px}
+.hud button svg{width:16px;height:16px}
+.hud button[disabled]{opacity:.3;cursor:default}
+
+.track{position:relative;z-index:0;pointer-events:none}
+
+/* ---------- phone ---------- */
+@media (max-width:760px){
+  .hero-brand{top:calc(env(safe-area-inset-top,0px) + 6vh)}
+  .hero-brand .wm{height:clamp(36px,6vh,56px)}
+  .hero-brand .os{font-size:clamp(26px,4.4vh,40px)}
+  .speech{width:calc(100vw - 40px)}
+  .speech .line{text-align:center;font-size:clamp(26px,7.6vw,36px)}
+  .why{left:max(20px,env(safe-area-inset-left,0px));right:max(20px,env(safe-area-inset-right,0px));width:auto;top:auto;bottom:calc(11vh + env(safe-area-inset-bottom,0px));transform:none}
+  .eyebrow{margin-bottom:14px}
+  .why p.wl{font-size:clamp(17px,4.6vw,21px);line-height:1.25}
+  .why p.goal{font-size:clamp(15px,4.2vw,18px)}
+  .panel,.intel{left:max(20px,env(safe-area-inset-left,0px));right:max(20px,env(safe-area-inset-right,0px));width:auto;top:auto;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:none}
+  .panel h3{font-size:clamp(26px,8vw,36px);margin-bottom:8px}
+  .panel .role{margin-bottom:10px}
+  .panel .desc{font-size:clamp(17px,4.8vw,20px)}
+  .panel .count{margin-bottom:12px}
+  .intel h3{font-size:clamp(22px,6.4vw,30px);margin-bottom:12px}
+  .intel p{font-size:clamp(16px,4.5vw,19px)}
+  .caption{top:auto;bottom:calc(92px + env(safe-area-inset-bottom,0px))}
+  .outro{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  .hud{left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));justify-content:space-between}
+  .hud .where{text-align:left}
+  .hud button{width:46px;height:46px}
+  .tile .name{font-size:9px;letter-spacing:.1em;margin-top:6px}
+  .hint{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+}
+@media (prefers-reduced-motion:reduce){.caret,.hint svg{animation:none}}
+</style>
+</head>
+<body>
+
+<!-- Readable version. Shown on its own when motion is reduced or scripts can't load. -->
+<main class="article" id="article">
+  <header>
+    <span style="font-family:var(--display);letter-spacing:.3em;font-size:12px;color:var(--mute);text-transform:uppercase">Welcome to</span>
+    <div class="wm-row"><img class="wm" src="elvn-wordmark.svg" alt="ELVN"><span class="os">OS</span></div>
+    <img class="eleven-still" src="eleven.webp" alt="11, the ELVN guide: a dark grey figure with galaxies in its eyes and blue light lines on its body">
+    <p class="say">Hi, I'm 11. Let me give you a tour of ELVN OS.</p>
+  </header>
+  <section>
+    <h2>Why it exists</h2>
+    <p>ELVN OS was built by one person with a simple belief.</p>
+    <p>Technology should fit the person using it.</p>
+    <p>It's made for neurodivergent entrepreneurs, and for anyone whose mind doesn't run on someone else's system.</p>
+    <p>Everything you use lives in one place, and it adapts to how you think.</p>
+    <p>The goal is to make your life ten times easier.</p>
+  </section>
+  <section>
+    <h2>The apps</h2>
+    <ul class="app-list" id="appListStatic"></ul>
+  </section>
+  <section>
+    <h2>The intelligence</h2>
+    <p>11 sits in the middle of it all. Every app shares what it learns with the others, so you never have to repeat yourself.</p>
+    <p>11 watches the whole picture and brings you what matters next.</p>
+  </section>
+  <section>
+    <p class="say">That's the tour. More apps are on the way, and 11 will be here when they land.</p>
+  </section>
+</main>
+
+<div class="stage" id="stage" aria-hidden="true">
+  <canvas id="sky"></canvas>
+
+  <canvas id="char"></canvas>
+  <div class="eleven-flat" id="flat"><img src="eleven.webp" alt="" draggable="false"></div>
+  <div id="tiles"></div>
+  <canvas id="fx"></canvas>
+
+  <div class="layer hero-brand" id="heroBrand">
+    <span class="welcome">Welcome to</span>
+    <div class="wm-row"><img class="wm" src="elvn-wordmark.svg" alt=""><span class="os">OS</span></div>
+  </div>
+  <div class="layer corner-brand" id="cornerBrand"><img class="wm" src="elvn-wordmark.svg" alt=""><span class="os">OS</span></div>
+
+  <div class="speech" id="speech">
+    <div class="line" id="say1"><span id="say1Text"></span><span class="caret" id="caret"></span></div>
+    <div class="line" id="say2"><small>The tour</small>Let me give you a tour of ELVN OS.</div>
+    <div class="line" id="say3">Watch this. I'll bring everything in.</div>
+    <div class="line" id="say4">See you inside.<p>That's the tour. More apps are on the way, and 11 will be here when they land.</p></div>
+  </div>
+
+  <div class="layer why" id="why">
+    <p class="eyebrow">Why it exists</p>
+    <p class="wl">ELVN OS was built by one person with a simple belief.</p>
+    <p class="wl">Technology should fit the person using it.</p>
+    <p class="wl">It's made for neurodivergent entrepreneurs, and for anyone whose mind doesn't run on someone else's system.</p>
+    <p class="wl">Everything you use lives in one place, and it adapts to how you think.</p>
+    <p class="wl goal">The goal: make your life ten times easier.</p>
+  </div>
+
+  <div class="layer caption" id="connectCap">
+    <div class="big">Every app, connected.</div>
+    <div class="small">What one app learns, the others know.</div>
+  </div>
+
+  <div class="layer panel" id="panel">
+    <div class="swap" id="panelSwap">
+      <div class="count" id="pCount">App 1 of 6</div>
+      <h3 id="pName">Cortex</h3>
+      <div class="role" id="pRole">Tasks</div>
+      <p class="desc" id="pDesc"></p>
+      <div class="note" id="pNote"></div>
+    </div>
+  </div>
+
+  <div class="layer intel" id="intel">
+    <p class="eyebrow">The intelligence</p>
+    <h3>11 sits in the middle of it all.</h3>
+    <p>Every app shares what it learns with the others, so you never have to repeat yourself.</p>
+    <p>11 watches the whole picture and brings you what matters next.</p>
+  </div>
+
+
+  <div class="layer loading" id="loading">11 is on his way</div>
+  <div class="layer hint" id="hint">
+    <span>Scroll</span>
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6l5 5 5-5"/></svg>
+  </div>
+</div>
+
+<nav class="hud" id="hud" aria-label="Tour controls">
+  <div class="where" id="where" aria-live="polite"><b>01</b> / 15 · Hello</div>
+  <button type="button" id="prevBtn" aria-label="Previous scene"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 10l4-4 4 4"/></svg></button>
+  <button type="button" id="nextBtn" aria-label="Next scene"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6l4 4 4-4"/></svg></button>
+</nav>
+
+<div class="track" id="track"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script>
+/* ---------------- content (shared by the readable version and the tour) ---------------- */
+(function(){
+const STAR = '<path d="M50 6 L56 44 L94 50 L56 56 L50 94 L44 56 L6 50 L44 44 Z" fill="#5ea4ff"/>';
+const APPS = [
+  {name:"Cortex", role:"Tasks", icon:"cortex",
+   desc:"Your tasks, reminders and plan for the day, kept in one place so nothing slips."},
+  {name:"Matthias", role:"Your chief of staff", icon:"shield",
+   desc:"Tell Matthias what you need in plain words. It handles the follow-through across your calendar, your inbox and the other apps."},
+  {name:"Resonance", role:"Social media and content", icon:"resonance",
+   desc:"Plans your posts, writes them in your voice, and never posts a claim you didn't approve."},
+  {name:"Synapse", role:"The people you work with", icon:"synapse",
+   desc:"Remembers everyone you work with and shows you who needs a follow-up before they go cold."},
+  {name:"Messages", role:"Conversations", icon:"messages",
+   desc:"Every conversation in one place, with what needs a reply at the top."},
+  {name:"Files", role:"Everything you've made", icon:"files",
+   desc:"Everything you've made or saved, found by asking for it."}
+];
+const GLYPH = {
+  content:'<svg viewBox="0 0 100 100" fill="none" stroke="#c9d1de" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><rect x="16" y="22" width="68" height="56" rx="8"/><path d="M16 64 L38 46 L54 60 L66 50 L84 64"/><g transform="translate(58 26) scale(.22)">'+STAR+'</g></svg>',
+  people:'<svg viewBox="0 0 100 100" fill="none" stroke="#c9d1de" stroke-width="5" stroke-linecap="round"><circle cx="32" cy="38" r="12"/><circle cx="70" cy="62" r="12"/><path d="M42 46 L60 55" stroke="#5ea4ff"/><path d="M14 80 C18 64, 46 64, 50 80"/></svg>',
+  messages:'<svg viewBox="0 0 100 100" fill="none" stroke="#c9d1de" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 26 H62 V58 H34 L22 70 V58 H14 Z"/><path d="M70 40 H86 V70 H80 V80 L70 70 H44" stroke="#5ea4ff"/></svg>',
+  files:'<svg viewBox="0 0 100 100" fill="none" stroke="#c9d1de" stroke-width="5" stroke-linejoin="round"><path d="M26 18 H58 L74 34 V82 H26 Z"/><path d="M58 18 V34 H74"/><path d="M38 52 H62 M38 64 H56" stroke="#5ea4ff" stroke-linecap="round"/></svg>'
+};
+function iconHTML(a){
+  if(a.icon==="cortex") return '<div class="ico"><img src="cortex.webp" alt=""></div>';
+  if(a.icon==="resonance"||a.icon==="synapse") return '<div class="ico"><img src="'+a.icon+'.webp" alt=""></div>';
+  if(a.icon==="shield") return '<div class="ico shield"><img src="matthias.webp" alt=""></div>';
+  return '<div class="ico ph">'+GLYPH[a.icon]+'</div>';
+}
+document.getElementById("appListStatic").innerHTML = APPS.map(a =>
+  '<li><div style="width:64px">'+iconHTML(a).replace('class="ico','style="width:64px" class="ico')+'</div><div><h3>'+a.name+'</h3><div class="role">'+a.role+'</div><p>'+a.desc+'</p></div></li>').join("");
+window.ELVN={APPS,iconHTML};
+})();
+</script>
+<script type="module">
+import * as THREE from "three";
+import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
+import {MeshoptDecoder} from "three/addons/libs/meshopt_decoder.module.js";
+
+const {APPS,iconHTML}=window.ELVN;
+const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+if(!reduce && window.gsap && window.ScrollTrigger) start();
+
+function start(){
+"use strict";
+document.documentElement.classList.add("engine");
+gsap.registerPlugin(ScrollTrigger);
+ScrollTrigger.config({ignoreMobileResize:true});
+try{ history.scrollRestoration = "manual"; }catch(e){}
+
+const $ = id => document.getElementById(id);
+const sky=$("sky"), fx=$("fx"), charCv=$("char"), flat=$("flat"), tilesEl=$("tiles");
+const sctx=sky.getContext("2d"), fctx=fx.getContext("2d");
+const N=APPS.length, STEP=Math.PI*2/N;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t;
+const easeIO=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2, easeOut=t=>1-Math.pow(1-t,3);
+
+let W=0,H=0,DPR=1,mobile=false;
+
+/* tiles */
+const tiles = APPS.map(a=>{
+  const d=document.createElement("div"); d.className="tile";
+  d.innerHTML=iconHTML(a)+'<div class="name">'+a.name+'</div>';
+  tilesEl.appendChild(d); return {el:d, cx:0,cy:0, raw:0};
+});
+
+/* state the scroll timeline drives. cx/cy place 11's chest; size scales his full height */
+const S = {
+  cx:.5, cy:.53, size:1,
+  wave:0, present:0, pull:0, swirl:0, point:0, open:0,
+  ring:0, arcs:0, arcsDim:1, tourMode:0, focus:0, intel:0
+};
+const I = {p:0, wave:0};  // the arrival, played once on load
+
+/* ---------------- sizing ---------------- */
+function baseSize(){ return mobile ? Math.min(H*0.44, W*1.05) : Math.min(H*0.64, W*0.5); }
+function resize(){
+  W=window.innerWidth; H=window.innerHeight; DPR=Math.min(window.devicePixelRatio||1,2);
+  mobile = W<=760;
+  for(const c of [sky,fx]){ c.width=Math.round(W*DPR); c.height=Math.round(H*DPR); }
+  sctx.setTransform(DPR,0,0,DPR,0,0); fctx.setTransform(DPR,0,0,DPR,0,0);
+  if(renderer){
+    renderer.setPixelRatio(Math.min(DPR, mobile?1.75:2)); renderer.setSize(W,H,false);
+    cam3.left=0; cam3.right=W; cam3.top=0; cam3.bottom=-H; cam3.updateProjectionMatrix();
+  }
+  buildStars();
+}
+
+/* ---------------- 11 in 3D ---------------- */
+const MODEL_H=1.82, CHEST=1.0;
+let renderer=null, scene3=null, cam3=null, root=null, model=null, R=null, mat=null, headB=null, eyeLocal=[], ready3D=false, flatMode=false;
+const v3=new THREE.Vector3();
+
+function makeRig(obj){
+  const B={}; obj.traverse(o=>{ if(o.isBone) B[o.name]=o; });
+  const rest={}; for(const k in B) rest[k]=B[k].quaternion.clone();
+  const q=new THREE.Quaternion(), pq=new THREE.Quaternion(), wq=new THREE.Quaternion(), e=new THREE.Euler(0,0,0,"YXZ");
+  const a=new THREE.Vector3(), b=new THREE.Vector3(), t=new THREE.Vector3(), rot=new THREE.Quaternion(), tw=new THREE.Quaternion();
+  return {
+    B,
+    reset(){ for(const k in B) B[k].quaternion.copy(rest[k]); },
+    local(n,x,y,z){ const bn=B[n]; if(bn) bn.quaternion.multiply(q.setFromEuler(e.set(x,y,z,"YXZ"))); },
+    // turn bone n so it points at its child c along dir (model space), with an optional twist about that line
+    aim(n,c,dir,twist){
+      const bn=B[n], ch=B[c];
+      bn.parent.updateWorldMatrix(true,false); bn.updateWorldMatrix(false,true);
+      bn.getWorldPosition(a); ch.getWorldPosition(b); b.sub(a).normalize();
+      t.set(dir[0],dir[1],dir[2]).transformDirection(obj.matrixWorld);
+      rot.setFromUnitVectors(b,t);
+      if(twist) rot.premultiply(tw.setFromAxisAngle(t,twist));
+      bn.getWorldQuaternion(wq); wq.premultiply(rot);
+      bn.parent.getWorldQuaternion(pq); bn.quaternion.copy(pq.invert().multiply(wq));
+    },
+    curl(side,amt,fingers){
+      const sg=side==="Right"?-1:1;
+      for(const f of fingers) for(let i=1;i<=3;i++) this.local(side+"Hand"+f+i,0,0,sg*amt*(i===1?0.8:1.1));
+    }
+  };
+}
+
+function init3D(){
+  try{
+    renderer=new THREE.WebGLRenderer({canvas:charCv, alpha:true, antialias:true, powerPreference:"high-performance"});
+  }catch(e){ renderer=null; return false; }
+  renderer.outputColorSpace=THREE.SRGBColorSpace;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.0;
+  renderer.setClearColor(0x000000,0);
+  scene3=new THREE.Scene();
+  cam3=new THREE.OrthographicCamera(0,1,0,-1,-5000,5000);
+  scene3.add(new THREE.HemisphereLight(0xd6e2ff,0x0a0c16,1.0));
+  const key=new THREE.DirectionalLight(0xffffff,1.7); key.position.set(0.7,1.1,1.3); scene3.add(key);
+  const rimA=new THREE.DirectionalLight(0x4f8dff,4.2); rimA.position.set(-1.2,0.5,-1); scene3.add(rimA);
+  const rimB=new THREE.DirectionalLight(0x9cc2ff,2.2); rimB.position.set(1.3,0.3,-0.9); scene3.add(rimB);
+  root=new THREE.Group(); scene3.add(root);
+  return true;
+}
+
+// the blue body lines and galaxy eyes, lifted out of the skin texture so they can glow on their own
+function glowMap(tex){
+  const img=tex.image, n=Math.min(1024, img.width||1024);
+  const c=document.createElement("canvas"); c.width=c.height=n;
+  const x=c.getContext("2d",{willReadFrequently:true}); x.drawImage(img,0,0,n,n);
+  const d=x.getImageData(0,0,n,n), p=d.data;
+  for(let i=0;i<p.length;i+=4){
+    const r=p[i],g=p[i+1],b=p[i+2], k=clamp((b-Math.max(r,g*0.85)-30)/70,0,1)*clamp((b-70)/80,0,1);
+    p[i]=r*k; p[i+1]=g*k; p[i+2]=b*k;
+  }
+  x.putImageData(d,0,0);
+  const t=new THREE.CanvasTexture(c); t.flipY=tex.flipY; t.colorSpace=THREE.SRGBColorSpace; t.channel=tex.channel||0;
+  return t;
+}
+
+async function loadModel(){
+  const L=new GLTFLoader();
+  let url = mobile ? "e11m.b64.txt" : "e11.b64.txt";
+  try{ await MeshoptDecoder.ready; L.setMeshoptDecoder(MeshoptDecoder); }catch(e){ url="e11q.b64.txt"; }
+  // on a normal web host the binary model is served as is; the artifact copy ships it as base64 text
+  let data, res=await fetch("models/"+url.replace(".b64.txt",".glb"));
+  if(res.ok) data=await res.arrayBuffer();
+  else{
+    res=await fetch(url); if(!res.ok) throw new Error("model "+res.status);
+    const bin=atob((await res.text()).trim()), buf=new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) buf[i]=bin.charCodeAt(i);
+    data=buf.buffer;
+  }
+  const g=await L.parseAsync(data,"");
+  model=g.scene;
+  model.traverse(o=>{ if(o.isMesh){ o.frustumCulled=false; mat=o.material; } });
+  model.updateMatrixWorld(true);
+  R=makeRig(model); headB=R.B.Head;
+  eyeLocal=[[-0.155,1.34,0.24],[0.155,1.34,0.24]].map(p=>headB.worldToLocal(new THREE.Vector3(...p)));
+  if(mat){
+    mat.metalness=0.05; mat.roughness=0.7;
+    if(mat.map){ mat.emissiveMap=glowMap(mat.map); mat.emissive=new THREE.Color(0xffffff); mat.emissiveIntensity=0.9; }
+    mat.needsUpdate=true;
+  }
+  model.position.y=-CHEST;
+  root.add(model);
+  ready3D=true;
+}
+
+/* poses: each arm is three directions (upper arm, forearm, hand) in 11's own space.
+   He faces the viewer; his right side is screen-left (x<0). */
+const REL=s=>({u:[s*0.28,-0.95,0.12], f:[s*0.14,-0.88,0.45], h:[s*0.1,-0.8,0.55], tw:0});
+const FLY=s=>({u:[s*0.42,-0.7,-0.6], f:[s*0.28,-0.55,-0.8], h:[s*0.22,-0.45,-0.86], tw:0});
+const WAVE=(o)=>({u:[-0.86,0.4,0.3], f:[-0.32+0.26*o,1,0.22], h:[-0.32+0.42*o,1,0.18], tw:1.2});
+const PRESENT=s=>({u:[s*0.6,-0.4,0.62], f:[s*0.78,0.12,0.6], h:[s*0.72,0.32,0.6], tw:0});
+const PULL=(s,ph)=>({u:[s*0.62,0.08,0.78], f:[s*0.5+Math.cos(ph)*0.32, 0.42+Math.sin(ph)*0.32, 0.75], h:[s*0.35+Math.cos(ph)*0.4, 0.7+Math.sin(ph)*0.3, 0.6], tw:0});
+const OPEN=s=>({u:[s*0.85,-0.1,0.4], f:[s*0.9,0.2,0.35], h:[s*0.85,0.35,0.3], tw:0});
+const INTEL=s=>({u:[s*0.78,-0.2,0.45], f:[s*0.6,0.4,0.7], h:[s*0.5,0.65,0.55], tw:0});
+function mix(a,b,w){
+  if(w<=0) return a; if(w>=1) return b;
+  return {u:a.u.map((v,i)=>lerp(v,b.u[i],w)), f:a.f.map((v,i)=>lerp(v,b.f[i],w)), h:a.h.map((v,i)=>lerp(v,b.h[i],w)), tw:lerp(a.tw,b.tw,w)};
+}
+function nrm(v){ const l=Math.hypot(v[0],v[1],v[2])||1; return [v[0]/l,v[1]/l,v[2]/l]; }
+
+const invQ=new THREE.Quaternion();
+let pointSide=1, pointDir=[1,0,0.4];
+function poseChar(T,fly,waveW,lookX,lookY){
+  R.reset();
+  const br=Math.sin(T*1.6), sw=Math.sin(T*0.9);
+  R.local("Spine",0.025*br,0.05*sw*(1-fly),0.02*Math.sin(T*0.7));
+  R.local("Spine2",0.02*Math.sin(T*1.6+0.6),0.03*sw*(1-fly),0);
+  R.local("Neck",0,lookX*0.25,0);
+  R.local("Head",lookY*0.3-0.04*fly,lookX*0.55,0.04*Math.sin(T*0.8));
+  root.updateMatrixWorld(true);
+  // floating legs, trailing behind in flight
+  for(const s of [-1,1]){
+    const side=s<0?"Right":"Left", ph=T*1.3+(s>0?1.1:0);
+    const th=mix({u:[s*0.04,-0.97,0.12+0.06*Math.sin(ph)],f:[s*0.02,-0.95,-0.22+0.06*Math.sin(ph+0.6)],h:[0,0,1],tw:0},{u:[s*0.1,-0.8,-0.55],f:[s*0.06,-0.55,-0.83],h:[0,0,1],tw:0},fly);
+    R.aim(side+"UpLeg",side+"Leg",nrm(th.u)); R.aim(side+"Leg",side+"Foot",nrm(th.f));
+  }
+  const ph=T*2.4;
+  for(const s of [-1,1]){
+    const side=s<0?"Right":"Left";
+    let a=REL(s);
+    a.u[1]+=0.04*br; a.f[2]+=0.05*Math.sin(T*1.1+(s>0?1:0));
+    a=mix(a,FLY(s),fly);
+    if(s<0) a=mix(a,WAVE(Math.sin(T*8.5)),waveW);
+    if(s>0) a=mix(a,PRESENT(s),S.present);
+    a=mix(a,PULL(s,ph+(s>0?Math.PI:0)),S.swirl);
+    a=mix(a,OPEN(s),S.open);
+    if(s===pointSide && S.point>0){
+      const t=nrm(pointDir);
+      a=mix(a,{u:nrm([t[0]*0.8+s*0.08,t[1]*0.8-0.25,t[2]*0.8]),f:t,h:t,tw:0},S.point);
+    }
+    a=mix(a,INTEL(s),S.intel);
+    R.aim(side+"Arm",side+"ForeArm",nrm(a.u));
+    R.aim(side+"ForeArm",side+"Hand",nrm(a.f),a.tw);
+    R.aim(side+"Hand",side+"HandMiddle1",nrm(a.h));
+    if(s===pointSide && S.point>0) R.curl(side,-0.9*S.point,["Middle","Ring","Pinky"]);
+  }
+  model.updateMatrixWorld(true);
+}
+function boneScreen(name){ R.B[name].getWorldPosition(v3); return {x:v3.x, y:-v3.y}; }
+
+/* ---------------- sky ---------------- */
+let stars=[], galaxy=null;
+function buildStars(){
+  const n = mobile ? 380 : 900;
+  stars = Array.from({length:n},()=>({x:(Math.random()*2-1), y:(Math.random()*2-1), z:Math.random()*0.95+0.05, b:Math.random()}));
+  const g=document.createElement("canvas"); const gs=Math.round(Math.max(W,H)*0.9); g.width=g.height=gs;
+  const c=g.getContext("2d"); const r0=gs/2;
+  c.globalCompositeOperation="lighter";
+  for(let i=0;i<5200;i++){
+    const arm=i%3, t=Math.random(), ang=t*5.2+arm*(Math.PI*2/3)+(Math.random()-.5)*0.55*(1-t*0.5);
+    const rad=Math.pow(t,0.9)*r0*0.92 + (Math.random()-.5)*r0*0.05;
+    const x=r0+Math.cos(ang)*rad, y=r0+Math.sin(ang)*rad*0.42;
+    const hot = 1-t;
+    const col = Math.random()<0.55 ? `rgba(${110+hot*120|0},${120+hot*90|0},255,${0.05+hot*0.18})` : `rgba(${150+hot*80|0},${90+hot*60|0},${230},${0.04+hot*0.12})`;
+    c.fillStyle=col; const s=Math.random()*2.2+0.4; c.fillRect(x,y,s,s);
+  }
+  const core=c.createRadialGradient(r0,r0,0,r0,r0,r0*0.22);
+  core.addColorStop(0,"rgba(215,228,255,.22)"); core.addColorStop(.5,"rgba(140,150,255,.05)"); core.addColorStop(1,"rgba(120,120,255,0)");
+  c.fillStyle=core; c.beginPath(); c.ellipse(r0,r0,r0*0.22,r0*0.1,0,0,Math.PI*2); c.fill();
+  galaxy=g;
+}
+let scrollVel=0, lastScroll=window.scrollY, mx=0, my=0, tmx=0, tmy=0;
+window.addEventListener("pointermove",e=>{ tmx=(e.clientX/W-.5); tmy=(e.clientY/H-.5); },{passive:true});
+
+function drawSky(t,dt){
+  sctx.fillStyle="#04050a"; sctx.fillRect(0,0,W,H);
+  const prog = st ? st.progress : 0;
+  if(galaxy){
+    const gs=galaxy.width;
+    sctx.save();
+    sctx.globalAlpha = mobile?0.42:0.5;
+    sctx.translate(W*0.72 - mx*30, H*(0.3 - prog*0.5) - my*20);
+    sctx.rotate(-0.35 + prog*0.9 + t*0.004);
+    sctx.drawImage(galaxy,-gs/2,-gs/2);
+    sctx.restore();
+  }
+  const warp = (1-I.p)*0.06 + Math.min(Math.abs(scrollVel)*0.00002,0.009) + 0.0006;
+  const cx=W/2 - mx*40, cy=H/2 - my*30, f=Math.max(W,H)*0.5;
+  for(const s of stars){
+    const pz=s.z;
+    s.z -= warp*dt*60*0.5;
+    if(s.z<=0.03){ s.z=1; s.x=Math.random()*2-1; s.y=Math.random()*2-1; continue; }
+    const x=cx+s.x/s.z*f*0.5, y=cy+s.y/s.z*f*0.5;
+    if(x<-10||x>W+10||y<-10||y>H+10){ s.z=1; s.x=Math.random()*2-1; s.y=Math.random()*2-1; continue; }
+    const a=Math.min(1,(1-s.z)*1.3)*(0.45+0.55*Math.sin(t*1.7+s.b*20)*0.5+0.25);
+    const size=(1-s.z)*1.9+0.25;
+    if(warp>0.01){
+      const px=cx+s.x/pz*f*0.5, py=cy+s.y/pz*f*0.5;
+      sctx.strokeStyle=`rgba(200,215,255,${a})`; sctx.lineWidth=size;
+      sctx.beginPath(); sctx.moveTo(px,py); sctx.lineTo(x,y); sctx.stroke();
+    } else {
+      sctx.fillStyle = s.b>0.9 ? `rgba(160,200,255,${a})` : `rgba(235,240,255,${a})`;
+      sctx.fillRect(x,y,size,size);
+    }
+  }
+}
+
+/* ---------------- lightning ---------------- */
+const boltCache=new Map();
+function boltPts(key,x1,y1,x2,y2,t){
+  let c=boltCache.get(key);
+  if(!c || t-c.t>0.07){
+    const d=Math.hypot(x2-x1,y2-y1), segs=[{u:0,o:0},{u:1,o:0}];
+    let disp=d*0.16;
+    for(let lvl=0;lvl<5;lvl++){
+      for(let i=segs.length-1;i>0;i--){
+        const a=segs[i-1], b=segs[i];
+        segs.splice(i,0,{u:(a.u+b.u)/2, o:(a.o+b.o)/2+(Math.random()-.5)*disp});
+      }
+      disp*=0.52;
+    }
+    c={t,segs}; boltCache.set(key,c);
+  }
+  const nx=-(y2-y1), ny=(x2-x1), L=Math.hypot(nx,ny)||1;
+  return c.segs.map(s=>({x:x1+(x2-x1)*s.u + nx/L*s.o, y:y1+(y2-y1)*s.u + ny/L*s.o}));
+}
+function drawBolt(key,x1,y1,x2,y2,alpha,frac,t,width){
+  if(alpha<=0.01||frac<=0) return;
+  const pts=boltPts(key,x1,y1,x2,y2,t), n=Math.max(2,Math.ceil(pts.length*frac));
+  fctx.lineJoin="round"; fctx.lineCap="round";
+  const passes=[[ (width||1)*7, `rgba(63,134,255,${alpha*0.18})`],[ (width||1)*2.6,`rgba(90,160,255,${alpha*0.55})`],[ (width||1)*1.1,`rgba(230,242,255,${alpha})`]];
+  for(const [w,col] of passes){
+    fctx.strokeStyle=col; fctx.lineWidth=w; fctx.beginPath(); fctx.moveTo(pts[0].x,pts[0].y);
+    for(let i=1;i<n;i++) fctx.lineTo(pts[i].x,pts[i].y);
+    fctx.stroke();
+  }
+  const e=pts[n-1];
+  if(frac<1 || key.startsWith("hand")) spark(e.x,e.y,alpha*0.9,(width||1)*7);
+}
+function spark(x,y,a,r){
+  fctx.save(); fctx.translate(x,y); fctx.fillStyle=`rgba(235,245,255,${a})`;
+  fctx.beginPath(); fctx.moveTo(0,-r); fctx.lineTo(r*.18,-r*.18); fctx.lineTo(r,0); fctx.lineTo(r*.18,r*.18); fctx.lineTo(0,r); fctx.lineTo(-r*.18,r*.18); fctx.lineTo(-r,0); fctx.lineTo(-r*.18,-r*.18); fctx.closePath(); fctx.fill(); fctx.restore();
+}
+function glowAt(x,y,r,a){
+  if(a<=0.01) return;
+  const g=fctx.createRadialGradient(x,y,0,x,y,r);
+  g.addColorStop(0,`rgba(205,230,255,${a})`); g.addColorStop(.35,`rgba(63,134,255,${a*0.5})`); g.addColorStop(1,"rgba(63,134,255,0)");
+  fctx.fillStyle=g; fctx.fillRect(x-r,y-r,r*2,r*2);
+}
+
+/* ---------------- frame ---------------- */
+let freeRot=-Math.PI/2, last=performance.now(), T=0;
+
+function frame(now){
+  const dt=Math.min(0.05,(now-last)/1000); last=now; T+=dt;
+  mx=lerp(mx,tmx,0.05); my=lerp(my,tmy,0.05);
+  const sy=window.scrollY; scrollVel=lerp(scrollVel,(sy-lastScroll)/Math.max(dt,0.001),0.2); lastScroll=sy;
+
+  drawSky(T,dt);
+  fctx.clearRect(0,0,W,H);
+
+  /* where 11 is: (hx,hy) is his chest, size is his full height in px */
+  const base=baseSize(), size=base*S.size;
+  let hx=W*S.cx + mx*14, hy=H*S.cy + my*10 + Math.sin(T*1.25)*size*0.01;
+  let sc=1, pitch=0, yaw=0, roll=0;
+  const fly=1-easeOut(clamp(I.p*1.15,0,1));
+  if(I.p<1){
+    const p=easeIO(I.p), q=1-p;
+    const p0={x:W*0.82,y:H*0.12}, p1={x:W*0.1,y:H*0.2};
+    hx = q*q*p0.x + 2*q*p*p1.x + p*p*hx;
+    hy = q*q*p0.y + 2*q*p*p1.y + p*p*hy;
+    sc = 0.02 + 0.98*Math.pow(I.p,2.2);
+    pitch = 0.75*fly; yaw = -1.1*fly + Math.sin(I.p*Math.PI)*0.5; roll = 0.35*fly;
+  }
+
+  /* where the focused tile sits (from last frame) so 11 can point at it */
+  const ft=tiles[clamp(Math.round(S.focus),0,N-1)];
+  if(S.tourMode>0.05){
+    pointSide = ft.cx>=hx ? 1 : -1;
+    const sx=hx+pointSide*size*0.12, syy=hy-size*0.18;
+    pointDir=[ft.cx-sx, -(ft.cy-syy), size*0.25];
+  }
+  const lookX=clamp(mx*1.2 + S.tourMode*clamp((ft.cx-hx)/(size*1.2),-0.6,0.6),-0.7,0.7);
+  const lookY=clamp(my*0.9 + S.tourMode*clamp((ft.cy-hy+size*0.42)/(size*1.6),-0.4,0.4),-0.45,0.45);
+  const waveW=Math.max(I.wave,S.wave);
+
+  let tipR, tipL, eyes;
+  if(ready3D && !flatMode){
+    root.position.set(hx,-hy,0);
+    root.scale.setScalar(size/MODEL_H*sc);
+    root.rotation.set(pitch, yaw + S.tourMode*clamp((ft.cx-hx)/(size*3),-0.25,0.25)*0.6 + Math.sin(T*0.5)*0.06, roll, "YXZ");
+    poseChar(T,fly,waveW,lookX,lookY);
+    mat && mat.emissiveMap && (mat.emissiveIntensity = 0.75 + 0.35*Math.sin(T*2.1) + S.intel*1.1*(0.75+0.25*Math.sin(T*9)) + S.swirl*0.4);
+    renderer.render(scene3,cam3);
+    tipR=boneScreen("RightHandMiddle4"); tipL=boneScreen("LeftHandMiddle4");
+    eyes=eyeLocal.map(p=>{ v3.copy(p); headB.localToWorld(v3); return {x:v3.x,y:-v3.y}; });
+  } else {
+    // flat fallback: the bust art, no arms
+    const fs=size*0.62*sc;
+    flat.style.display="block"; flat.style.width=fs+"px"; flat.style.height=fs+"px";
+    flat.style.transform=`translate3d(${hx-fs/2}px,${hy-fs*0.75}px,0) rotate(${roll*-40}deg)`;
+    tipR={x:hx-fs*0.42,y:hy+fs*0.1}; tipL={x:hx+fs*0.42,y:hy+fs*0.1};
+    eyes=[{x:hx-fs*0.14,y:hy-fs*0.26},{x:hx+fs*0.14,y:hy-fs*0.26}];
+  }
+
+  /* eyes light up when he thinks */
+  const eg=S.intel*(0.75+0.25*Math.sin(T*9));
+  for(const e of eyes) glowAt(e.x,e.y,size*0.07,eg*0.9);
+
+  /* ring of apps around his middle */
+  const ringC={x:hx, y:hy+size*0.02};
+  const Rr = mobile ? Math.min(size*0.62, W*0.5-50) : size*0.64;
+  const tilt = mobile ? 0.78 : 0.42;
+  const T0 = (mobile?base*0.17:base*0.16);
+  if(S.swirl>0) freeRot += dt*0.75*S.swirl;
+  const focusA = mobile ? 1.15 : 0.32;
+  let tourRot = focusA - S.focus*STEP;
+  tourRot += Math.PI*2*Math.round((freeRot-tourRot)/(Math.PI*2));
+  const ringRot = lerp(freeRot,tourRot,S.tourMode);
+  const pullSpread=0.13;
+  tiles.forEach((tl,i)=>{
+    const raw=clamp(S.pull*(1+(N-1)*pullSpread)-i*pullSpread,0,1), e=easeOut(raw);
+    const a=ringRot+i*STEP + 2.9*(1-e);
+    const r=Rr*(1+3.4*(1-e));
+    const depth=Math.sin(a);
+    const fw=Math.max(0,1-Math.abs(S.focus-i))*S.tourMode;
+    const s=(0.12+0.88*e)*(0.74+0.26*(depth+1)/2)*(1+0.42*fw);
+    const x=ringC.x+Math.cos(a)*r, y=ringC.y+Math.sin(a)*r*tilt;
+    const dim = 1 - 0.55*S.tourMode*(1-fw);
+    const op=clamp(e*3,0,1)*dim*(0.6+0.4*(depth+1)/2);
+    tl.el.style.width=T0+"px";
+    tl.el.style.opacity=op.toFixed(3);
+    tl.el.style.zIndex = depth>0 ? 30 : 10;
+    tl.el.style.transform=`translate3d(${x-T0/2}px,${y-T0/2}px,0) scale(${s})`;
+    tl.cx=x; tl.cy=y; tl.raw=raw;
+  });
+
+  /* lightning from his fingertips to each app as he pulls it in */
+  tiles.forEach((tl,i)=>{
+    if(tl.raw>0.02 && tl.raw<0.995 && S.swirl>0.2){
+      const tip = i%2 ? tipL : tipR;
+      drawBolt("hand"+i,tip.x,tip.y,tl.cx,tl.cy,Math.sin(Math.PI*tl.raw)*S.swirl,1,T,mobile?0.8:1);
+    }
+  });
+  /* a spark stays at his fingertip while he points */
+  if(S.point>0.3 && ready3D){ const tp=pointSide>0?tipL:tipR; spark(tp.x,tp.y,S.point*0.8*(0.7+0.3*Math.sin(T*10)),mobile?6:8); }
+  /* the ring, joined like Cortex */
+  if(S.arcs>0){
+    tiles.forEach((tl,i)=>{
+      const nx=tiles[(i+1)%N], frac=clamp(S.arcs*N-i,0,1);
+      drawBolt("ring"+i,tl.cx,tl.cy,nx.cx,nx.cy,(0.35+0.4*(1-S.tourMode))*S.arcsDim+0.15*Math.sin(T*11+i),frac,T,mobile?0.75:1);
+    });
+  }
+  /* intelligence: everything flows into his eyes */
+  if(S.intel>0){
+    tiles.forEach((tl,i)=>{ const e=eyes[i%2]; drawBolt("intel"+i,tl.cx,tl.cy,e.x,e.y,S.intel*(0.6+0.4*Math.sin(T*7+i*1.3)),clamp(S.intel*1.4-i*0.05,0,1),T,mobile?0.75:1); });
+  }
+
+  /* speech sits beside him on desktop, under him on phones */
+  const sp=$("speech");
+  if(mobile){
+    let top=hy+size*0.6+10;
+    if(S.pull>0.5) top=Math.max(top, ringC.y+Rr*tilt+T0*0.95);
+    sp.style.transform=`translate3d(20px,${Math.min(top,H*0.78)}px,0)`;
+  } else {
+    const ringRight = S.pull>0.5 ? ringC.x+Rr+T0*0.6 : 0;
+    let left=Math.max(hx+size*0.34, ringRight), top=hy-size*0.42;
+    left=Math.min(left,W-sp.offsetWidth-32);
+    sp.style.transform=`translate3d(${left}px,${top}px,0)`;
+  }
+
+  onProgress();
+  requestAnimationFrame(frame);
+}
+
+/* ---------------- panel ---------------- */
+let shown=-1;
+function setPanel(i){
+  if(i===shown) return; shown=i;
+  const sw=$("panelSwap"); sw.classList.add("out");
+  setTimeout(()=>{
+    const a=APPS[i];
+    $("pCount").textContent=`App ${i+1} of ${N}`;
+    $("pName").textContent=a.name; $("pRole").textContent=a.role; $("pDesc").textContent=a.desc;
+    $("pNote").textContent = (a.icon==="cortex"||a.icon==="shield"||a.icon==="resonance"||a.icon==="synapse") ? "" : "Placeholder icon. The real one is on the way.";
+    sw.classList.remove("out");
+  },180);
+}
+
+/* ---------------- scroll timeline ---------------- */
+const tl=gsap.timeline({paused:true, defaults:{ease:"power2.inOut"}});
+const M=()=>mobile;
+const SCENES=[];
+function scene(name,label){ tl.addLabel(label); SCENES.push({label,name,time:tl.labels[label]}); }
+
+function build(){
+  scene("Hello","hello");
+  // the tour: he opens a hand toward you
+  tl.to("#say1",{opacity:0,duration:.4},0)
+    .to("#say2",{opacity:1,duration:.5},.35)
+    .to("#heroBrand",{opacity:0,y:-30,duration:.6},0)
+    .to("#cornerBrand",{opacity:1,duration:.5},.4)
+    .to("#hint",{opacity:0,duration:.3},0)
+    .to(S,{present:1,duration:.8},.1);
+  tl.set({}, {}, 1); scene("The tour","tour");
+  // why it exists: he steps aside for the words
+  tl.to("#say2",{opacity:0,duration:.4},1)
+    .to(S,{present:0,duration:.6},1)
+    .to(S,{cx:()=>M()?.5:.2, cy:()=>M()?.26:.56, size:()=>M()?.5:.86,duration:1},1)
+    .to("#why",{opacity:1,duration:.6},1.4)
+    .to("#why .wl:nth-of-type(2)",{opacity:1,duration:.4},1.6);
+  tl.set({}, {}, 2); scene("Why it exists","why");
+  const lines=gsap.utils.toArray("#why .wl");
+  lines.slice(1).forEach((el,i)=>tl.to(el,{opacity:1,duration:.55},2.05+i*.7));
+  tl.set({}, {}, 5); scene("The goal","goal");
+  // he pulls the apps in with his hands
+  tl.to("#why",{opacity:0,duration:.5},5)
+    .to(S,{cx:.5, cy:()=>M()?.4:.54, size:()=>M()?.8:.95,duration:1},5.1)
+    .to("#say3",{opacity:1,duration:.4},5.6)
+    .to(S,{swirl:1,duration:.7},5.6)
+    .to(S,{pull:1,duration:2.2,ease:"power1.inOut"},6.1)
+    .to("#say3",{opacity:0,duration:.3},6.7);
+  tl.set({}, {}, 8.3); scene("The apps","apps");
+  // and joins them
+  tl.to(S,{swirl:0,open:1,duration:.6},8.3)
+    .to(S,{arcs:1,duration:1.1,ease:"none"},8.5)
+    .to("#connectCap",{opacity:1,duration:.5},8.9);
+  tl.set({}, {}, 9.8); scene("Connected","connect");
+  // a tour of each app: he points at the one you're reading about
+  tl.to("#connectCap",{opacity:0,duration:.4},9.8)
+    .to(S,{open:0,tourMode:1,point:1,duration:1},9.9)
+    .to(S,{cx:()=>M()?.5:.29, cy:()=>M()?.3:.54, size:()=>M()?.62:.85,duration:1},9.9)
+    .to("#panel",{opacity:1,duration:.5},10.4);
+  tl.set({}, {}, 10.9); scene(APPS[0].name,"app-0");
+  for(let i=1;i<N;i++){
+    tl.to(S,{focus:i,duration:1.2},10.9+(i-1)*1.4);
+    tl.set({}, {}, 10.9+(i-1)*1.4+1.4); scene(APPS[i].name,"app-"+i);
+  }
+  const tEnd=10.9+(N-1)*1.4;
+  // the intelligence: everything flows into him
+  tl.to("#panel",{opacity:0,duration:.4},tEnd)
+    .to(S,{tourMode:0,point:0,arcsDim:.5,duration:1},tEnd)
+    .to(S,{cx:()=>M()?.5:.3, cy:()=>M()?.3:.54, size:()=>M()?.6:.8,duration:1},tEnd)
+    .to(S,{intel:1,duration:1.1},tEnd+.4)
+    .to("#intel",{opacity:1,duration:.5},tEnd+.7);
+  tl.set({}, {}, tEnd+1.5); scene("The intelligence","intel");
+  // goodbye wave
+  const tO=tEnd+1.5;
+  tl.to("#intel",{opacity:0,duration:.4},tO)
+    .to(S,{intel:0,arcsDim:.7,duration:.8},tO)
+    .to(S,{cx:()=>M()?.5:.38, cy:()=>M()?.39:.54, size:1, duration:1},tO)
+    .to(S,{wave:1,duration:.7},tO+.4)
+    .to("#cornerBrand",{opacity:0,duration:.4},tO+.3)
+    .to("#heroBrand",{opacity:1,y:0,duration:.6},tO+.4)
+    .to("#say4",{opacity:1,duration:.5},tO+.7);
+  tl.set({}, {}, tO+1.5); scene("Welcome","end");
+}
+
+let st=null;
+function setupScroll(){
+  const total=tl.duration();
+  const unit = mobile ? 0.62 : 0.72;
+  $("track").style.height = Math.round(H + total*unit*H) + "px";
+  st = ScrollTrigger.create({
+    trigger:"#track", start:"top top", end:"bottom bottom",
+    animation:tl, scrub: mobile ? 0.5 : 0.9,
+    snap: (!mobile && window.matchMedia("(pointer:fine)").matches) ? {snapTo:"labelsDirectional", duration:{min:.45,max:1.1}, delay:.12, ease:"power1.inOut"} : false
+  });
+}
+
+function currentScene(){
+  const t=tl.time(); let idx=0;
+  SCENES.forEach((s,i)=>{ if(t>=s.time-0.35) idx=i; });
+  return idx;
+}
+let lastIdx=-1;
+function onProgress(){
+  if(S.tourMode>0.4) setPanel(clamp(Math.round(S.focus),0,N-1));
+  const idx=currentScene();
+  if(idx!==lastIdx){
+    lastIdx=idx;
+    $("where").innerHTML=`<b>${String(idx+1).padStart(2,"0")}</b> / ${SCENES.length} · ${SCENES[idx].name}`;
+    $("prevBtn").disabled = idx===0; $("nextBtn").disabled = idx===SCENES.length-1;
+  }
+}
+function go(dir){
+  const idx=clamp(currentScene()+dir,0,SCENES.length-1);
+  const y=st.labelToScroll(SCENES[idx].label);
+  window.scrollTo({top:y+1, behavior:"smooth"});
+}
+$("nextBtn").addEventListener("click",()=>go(1));
+$("prevBtn").addEventListener("click",()=>go(-1));
+window.addEventListener("keydown",e=>{
+  if(["ArrowDown","PageDown"," "].includes(e.key) && !e.target.closest("button")){ e.preventDefault(); go(1); }
+  if(["ArrowUp","PageUp"].includes(e.key)){ e.preventDefault(); go(-1); }
+});
+
+/* ---------------- arrival: 11 flies in and waves ---------------- */
+let introStarted=false;
+function intro(){
+  if(introStarted) return; introStarted=true;
+  $("loading").style.opacity=0;
+  const txt="Hi, I'm 11.", el=$("say1Text");
+  const it=gsap.timeline();
+  it.to(I,{p:1,duration:2.6,ease:"none"},0.1)
+    .to(I,{wave:1,duration:.5,ease:"power2.out"},2.45)
+    .to("#say1",{opacity:1,duration:.3},2.6)
+    .add(()=>{ let n=0; const tick=()=>{ el.textContent=txt.slice(0,++n); if(n<txt.length) setTimeout(tick,70); }; tick(); },2.65)
+    .to(I,{wave:0,duration:.8,ease:"power2.inOut"},5.0)
+    .to("#hint",{opacity:1,duration:.6},4.6)
+    .add(()=>{ $("caret").style.display="none"; },5.6);
+  if(window.scrollY>40) it.progress(1);
+}
+
+/* ---------------- boot ---------------- */
+const has3D=init3D();
+resize();
+gsap.set("#heroBrand",{xPercent:-50});
+S.cy = mobile ? .39 : .53;
+build();
+setupScroll();
+onProgress();
+window.scrollTo(0,0);
+let lastW=W;
+window.addEventListener("resize",()=>{
+  const wasMobile=mobile; resize();
+  if(Math.abs(W-lastW)>40 || wasMobile!==mobile){
+    lastW=W;
+    const p=st.progress; st.kill(); tl.progress(0); S.cy = mobile ? .39 : .53; tl.invalidate(); setupScroll();
+    window.scrollTo(0, p*(st.end-st.start)+st.start);
+    ScrollTrigger.refresh();
+  }
+});
+window.__tour={get st(){return st;},SCENES,I,get ready(){return ready3D||flatMode;}};
+// 11 arrives once his model is in; if it can't load, the flat art stands in
+const fallback=()=>{ flatMode=true; charCv.style.display="none"; intro(); };
+const timer=setTimeout(fallback,15000);
+if(has3D) loadModel().then(()=>{ clearTimeout(timer); if(!flatMode) intro(); }).catch(()=>{ clearTimeout(timer); fallback(); });
+else { clearTimeout(timer); fallback(); }
+requestAnimationFrame(frame);
+}
+</script>
+</body>
+</html>
