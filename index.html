@@ -153,6 +153,11 @@ html.engine .hud{display:flex}
   .hint{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 }
 @media (prefers-reduced-motion:reduce){.caret,.hint svg{animation:none}}
+.status{display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#aab4c4;margin:0 0 12px}
+.status::before{content:"";width:6px;height:6px;border-radius:50%;background:#7d8696}
+.status[data-s="In use today"]::before{background:#5ea4ff}
+.status[data-s="In development"]::before{background:#c9d1de}
+.status[data-s="Planned"]::before{background:transparent;box-shadow:inset 0 0 0 1px #7d8696}
 </style>
 </head>
 <body>
@@ -227,6 +232,7 @@ html.engine .hud{display:flex}
       <div class="count" id="pCount">App 1 of 6</div>
       <h3 id="pName">Cortex</h3>
       <div class="role" id="pRole">Tasks</div>
+      <div class="status" id="pStatus"></div>
       <p class="desc" id="pDesc"></p>
       <div class="note" id="pNote"></div>
     </div>
@@ -263,17 +269,17 @@ html.engine .hud{display:flex}
 (function(){
 const STAR = '<path d="M50 6 L56 44 L94 50 L56 56 L50 94 L44 56 L6 50 L44 44 Z" fill="#5ea4ff"/>';
 const APPS = [
-  {name:"Cortex", role:"Tasks", icon:"cortex",
+  {name:"Cortex", status:"In development", role:"Tasks", icon:"cortex",
    desc:"Your tasks, reminders and plan for the day, kept in one place so nothing slips."},
-  {name:"Matthias", role:"Your chief of staff", icon:"shield",
+  {name:"Matthias", status:"In use today", role:"Your chief of staff", icon:"shield",
    desc:"Tell Matthias what you need in plain words. It handles the follow-through across your calendar, your inbox and the other apps."},
-  {name:"Resonance", role:"Social media and content", icon:"resonance",
+  {name:"Resonance", status:"In development", role:"Social media and content", icon:"resonance",
    desc:"Plans your posts, writes them in your voice, and never posts a claim you didn't approve."},
-  {name:"Synapse", role:"The people you work with", icon:"synapse",
+  {name:"Synapse", status:"Planned", role:"The people you work with", icon:"synapse",
    desc:"Remembers everyone you work with and shows you who needs a follow-up before they go cold."},
-  {name:"Messages", role:"Conversations", icon:"messages",
+  {name:"Messages", status:"Planned", role:"Conversations", icon:"messages",
    desc:"Every conversation in one place, with what needs a reply at the top."},
-  {name:"Files", role:"Everything you've made", icon:"files",
+  {name:"Files", status:"Planned", role:"Everything you've made", icon:"files",
    desc:"Everything you've made or saved, found by asking for it."}
 ];
 const GLYPH = {
@@ -289,7 +295,7 @@ function iconHTML(a){
   return '<div class="ico ph">'+GLYPH[a.icon]+'</div>';
 }
 document.getElementById("appListStatic").innerHTML = APPS.map(a =>
-  '<li><div style="width:64px">'+iconHTML(a).replace('class="ico','style="width:64px" class="ico')+'</div><div><h3>'+a.name+'</h3><div class="role">'+a.role+'</div><p>'+a.desc+'</p></div></li>').join("");
+  '<li><div style="width:64px">'+iconHTML(a).replace('class="ico','style="width:64px" class="ico')+'</div><div><h3>'+a.name+'</h3><div class="role">'+a.role+'</div><div class="status" data-s="'+a.status+'">'+a.status+'</div><p>'+a.desc+'</p></div></li>').join("");
 window.ELVN={APPS,iconHTML};
 })();
 </script>
@@ -728,7 +734,7 @@ function setPanel(i){
   setTimeout(()=>{
     const a=APPS[i];
     $("pCount").textContent=`App ${i+1} of ${N}`;
-    $("pName").textContent=a.name; $("pRole").textContent=a.role; $("pDesc").textContent=a.desc;
+    $("pName").textContent=a.name; $("pRole").textContent=a.role; $("pStatus").textContent=a.status; $("pStatus").dataset.s=a.status; $("pDesc").textContent=a.desc;
     $("pNote").textContent = (a.icon==="cortex"||a.icon==="shield"||a.icon==="resonance"||a.icon==="synapse") ? "" : "Placeholder icon. The real one is on the way.";
     sw.classList.remove("out");
   },180);
