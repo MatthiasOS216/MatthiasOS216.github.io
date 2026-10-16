@@ -158,6 +158,11 @@ html.engine .hud{display:flex}
 .status[data-s="In use today"]::before{background:#5ea4ff}
 .status[data-s="In development"]::before{background:#c9d1de}
 .status[data-s="Planned"]::before{background:transparent;box-shadow:inset 0 0 0 1px #7d8696}
+/* House of Data: exact wordmark and uncropped emblem; other identities unchanged. */
+.ico.hod img{display:block;width:100%;height:auto;object-fit:contain}
+.tile .ico.hod{border-radius:0;overflow:visible}
+.hod-wordmark{display:block;width:320px;max-width:100%;height:auto}
+.article .hod-wordmark{width:280px}
 </style>
 </head>
 <body>
@@ -281,7 +286,7 @@ const APPS = [
    desc:"Remembers everyone you work with and shows you who needs a follow-up before they go cold."},
   {name:"Coherence", status:"In development", role:"Messages and calls", icon:"coherence",
    desc:"Every conversation in one place, with what needs a reply at the top."},
-  {name:"Files", status:"In development", role:"Everything you've made", icon:"files",
+  {name:"House of Data", status:"In development", role:"Everything you've made", icon:"files",
    desc:"Everything you've made or saved, found by asking for it."}
 ];
 const GLYPH = {
@@ -290,15 +295,19 @@ const GLYPH = {
   messages:'<svg viewBox="0 0 100 100" fill="none" stroke="#c9d1de" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 26 H62 V58 H34 L22 70 V58 H14 Z"/><path d="M70 40 H86 V70 H80 V80 L70 70 H44" stroke="#5ea4ff"/></svg>',
   files:'<svg viewBox="0 0 100 100" fill="none" stroke="#c9d1de" stroke-width="5" stroke-linejoin="round"><path d="M26 18 H58 L74 34 V82 H26 Z"/><path d="M58 18 V34 H74"/><path d="M38 52 H62 M38 64 H56" stroke="#5ea4ff" stroke-linecap="round"/></svg>'
 };
+function nameHTML(a){
+  return a.icon==="files" ? '<img class="hod-wordmark" src="assets/house-of-data/HOD-wordmark-black.png" width="900" height="280" alt="HOD — House of Data">' : a.name;
+}
 function iconHTML(a){
+  if(a.icon==="files") return '<div class="ico hod"><img src="assets/house-of-data/HOD-icon-512.png" width="512" height="512" alt=""></div>';
   if(a.icon==="cortex") return '<div class="ico"><img src="cortex.webp" alt=""></div>';
   if(["resonance","synapse","coherence","metona"].includes(a.icon)) return '<div class="ico"><img src="'+a.icon+'.webp" alt=""></div>';
   if(a.icon==="shield") return '<div class="ico shield"><img src="matthias.webp" alt=""></div>';
   return '<div class="ico ph">'+GLYPH[a.icon]+'</div>';
 }
 document.getElementById("appListStatic").innerHTML = APPS.map(a =>
-  '<li><div style="width:64px">'+iconHTML(a).replace('class="ico','style="width:64px" class="ico')+'</div><div><h3>'+a.name+'</h3><div class="role">'+a.role+'</div><div class="status" data-s="'+a.status+'">'+a.status+'</div><p>'+a.desc+'</p></div></li>').join("");
-window.ELVN={APPS,iconHTML};
+  '<li><div style="width:64px">'+iconHTML(a).replace('class="ico','style="width:64px" class="ico')+'</div><div><h3>'+nameHTML(a)+'</h3><div class="role">'+a.role+'</div><div class="status" data-s="'+a.status+'">'+a.status+'</div><p>'+a.desc+'</p></div></li>').join("");
+window.ELVN={APPS,iconHTML,nameHTML};
 })();
 </script>
 <script type="module">
@@ -306,7 +315,7 @@ import * as THREE from "three";
 import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
 import {MeshoptDecoder} from "three/addons/libs/meshopt_decoder.module.js";
 
-const {APPS,iconHTML}=window.ELVN;
+const {APPS,iconHTML,nameHTML}=window.ELVN;
 const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 if(!reduce && window.gsap && window.ScrollTrigger) start();
 
@@ -736,8 +745,8 @@ function setPanel(i){
   setTimeout(()=>{
     const a=APPS[i];
     $("pCount").textContent=`App ${i+1} of ${N}`;
-    $("pName").textContent=a.name; $("pRole").textContent=a.role; $("pStatus").textContent=a.status; $("pStatus").dataset.s=a.status; $("pDesc").textContent=a.desc;
-    $("pNote").textContent = ["cortex","shield","resonance","synapse","coherence","metona"].includes(a.icon) ? "" : "Placeholder icon. The real one is on the way.";
+    $("pName").innerHTML=nameHTML(a); $("pRole").textContent=a.role; $("pStatus").textContent=a.status; $("pStatus").dataset.s=a.status; $("pDesc").textContent=a.desc;
+    $("pNote").textContent = ["cortex","shield","resonance","synapse","coherence","metona","files"].includes(a.icon) ? "" : "Placeholder icon. The real one is on the way.";
     sw.classList.remove("out");
   },180);
 }
