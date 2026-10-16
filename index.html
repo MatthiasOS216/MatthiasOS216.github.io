@@ -229,7 +229,7 @@ html.engine .hud{display:flex}
 
   <div class="layer panel" id="panel">
     <div class="swap" id="panelSwap">
-      <div class="count" id="pCount">App 1 of 6</div>
+      <div class="count" id="pCount">App 1 of 7</div>
       <h3 id="pName">Cortex</h3>
       <div class="role" id="pRole">Tasks</div>
       <div class="status" id="pStatus"></div>
@@ -271,13 +271,15 @@ const STAR = '<path d="M50 6 L56 44 L94 50 L56 56 L50 94 L44 56 L6 50 L44 44 Z" 
 const APPS = [
   {name:"Cortex", status:"In development", role:"Tasks", icon:"cortex",
    desc:"Your tasks, reminders and plan for the day, kept in one place so nothing slips."},
+  {name:"Metona", status:"In development", role:"Calendar and booking", icon:"metona",
+   desc:"Your calendar and bookings, in one place."},
   {name:"Matthias", status:"In use today", role:"Your chief of staff", icon:"shield",
    desc:"Tell Matthias what you need in plain words. It handles the follow-through across your calendar, your inbox and the other apps."},
   {name:"Resonance", status:"In development", role:"Social media and content", icon:"resonance",
    desc:"Plans your posts, writes them in your voice, and never posts a claim you didn't approve."},
   {name:"Synapse", status:"Planned", role:"The people you work with", icon:"synapse",
    desc:"Remembers everyone you work with and shows you who needs a follow-up before they go cold."},
-  {name:"Messages", status:"In development", role:"Conversations", icon:"messages",
+  {name:"Coherence", status:"In development", role:"Messages and calls", icon:"coherence",
    desc:"Every conversation in one place, with what needs a reply at the top."},
   {name:"Files", status:"In development", role:"Everything you've made", icon:"files",
    desc:"Everything you've made or saved, found by asking for it."}
@@ -290,7 +292,7 @@ const GLYPH = {
 };
 function iconHTML(a){
   if(a.icon==="cortex") return '<div class="ico"><img src="cortex.webp" alt=""></div>';
-  if(a.icon==="resonance"||a.icon==="synapse") return '<div class="ico"><img src="'+a.icon+'.webp" alt=""></div>';
+  if(["resonance","synapse","coherence","metona"].includes(a.icon)) return '<div class="ico"><img src="'+a.icon+'.webp" alt=""></div>';
   if(a.icon==="shield") return '<div class="ico shield"><img src="matthias.webp" alt=""></div>';
   return '<div class="ico ph">'+GLYPH[a.icon]+'</div>';
 }
@@ -735,7 +737,7 @@ function setPanel(i){
     const a=APPS[i];
     $("pCount").textContent=`App ${i+1} of ${N}`;
     $("pName").textContent=a.name; $("pRole").textContent=a.role; $("pStatus").textContent=a.status; $("pStatus").dataset.s=a.status; $("pDesc").textContent=a.desc;
-    $("pNote").textContent = (a.icon==="cortex"||a.icon==="shield"||a.icon==="resonance"||a.icon==="synapse") ? "" : "Placeholder icon. The real one is on the way.";
+    $("pNote").textContent = ["cortex","shield","resonance","synapse","coherence","metona"].includes(a.icon) ? "" : "Placeholder icon. The real one is on the way.";
     sw.classList.remove("out");
   },180);
 }
