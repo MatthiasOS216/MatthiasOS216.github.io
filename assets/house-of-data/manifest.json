@@ -1,0 +1,30 @@
+{
+  "brand": "House of Data",
+  "selected_direction": "02 Architectural Data",
+  "source_pack_sha256": "012d26ce02f8e8abc30d386034ee9de3adedd2caaf9ee614a5d9347476c56362",
+  "source_pack_url": "https://drive.google.com/file/d/1uwzG7CoFnV1720aWwYDFAhKoodHYVZxy/view",
+  "files": [
+    {
+      "path": "icons/HOD-icon-512.png",
+      "bytes": 323142,
+      "sha256": "0ea5d862bea4988d17ed61aa02672001c1d6e3df5ccf30b034a5df794df733cb",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "file": "HOD-icon-512.png"
+    },
+    {
+      "path": "logos/HOD-wordmark-black.png",
+      "bytes": 200193,
+      "sha256": "d63d4ff88a34fe21fd8e14b8850f050d10243ed248beec4104195bb2a3c011a0",
+      "width": 900,
+      "height": 280,
+      "mode": "RGB",
+      "file": "HOD-wordmark-black.png"
+    }
+  ]
+}
