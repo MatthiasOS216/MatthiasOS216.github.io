@@ -163,9 +163,24 @@ html.engine .hud{display:flex}
 .tile .ico.hod{border-radius:0;overflow:visible}
 .hod-wordmark{display:block;width:320px;max-width:100%;height:auto}
 .article .hod-wordmark{width:280px}
+/* Navigation belongs to the existing typographic HUD, leaving Eleven as the focal point. */
+.browse-apps{position:fixed;z-index:80;right:max(20px,env(safe-area-inset-right,0px));top:env(safe-area-inset-top,0px);min-height:44px;display:flex;align-items:center;gap:8px;color:var(--silver);font-size:13px;text-decoration:none}
+.browse-apps span{color:var(--mute)}
+a:focus-visible{outline:2px solid var(--volt-hot);outline-offset:5px}
+.browse-apps:hover,.app-detail:hover{color:var(--volt-hot);text-decoration:underline}
+.tile{color:var(--silver);text-decoration:none;cursor:pointer;pointer-events:auto}
+.tile:focus-visible .ico,.tile:hover .ico{outline:2px solid var(--volt-hot);outline-offset:4px}
+#char{pointer-events:none}
+.app-detail{display:inline-flex;align-items:center;min-height:44px;color:var(--volt-hot);text-underline-offset:5px;pointer-events:auto}
+.hud button{min-width:44px;min-height:44px}
+html.engine .article{display:none}
+.article .app-list a{color:var(--ink);display:inline-flex;align-items:center;min-height:44px;text-underline-offset:5px}
+@media(max-width:360px){.corner-brand .wm{height:18px}.corner-brand .os{font-size:13px}.corner-brand{gap:6px}}
+@media(max-width:760px){.browse-apps{right:20px;font-size:12px}.panel .note:empty{display:none}.panel .app-detail{margin-top:6px}.panel .desc{font-size:clamp(16px,4.5vw,19px)}}
 </style>
 </head>
 <body>
+<a class="browse-apps" href="apps/index.html"><span>Skip tour</span> · Browse apps →</a>
 
 <!-- Readable version. Shown on its own when motion is reduced or scripts can't load. -->
 <main class="article" id="article">
@@ -180,30 +195,38 @@ html.engine .hud{display:flex}
     <p>ELVN OS was built by one person with a simple belief.</p>
     <p>Technology should fit the person using it.</p>
     <p>It's made for neurodivergent entrepreneurs, and for anyone whose mind doesn't run on someone else's system.</p>
-    <p>Everything you use lives in one place, and it adapts to how you think.</p>
+    <p>The vision: independent apps that work together around the way you think.</p>
     <p>The goal is to make your life ten times easier.</p>
   </section>
   <section>
     <h2>The apps</h2>
-    <ul class="app-list" id="appListStatic"></ul>
+    <ul class="app-list" id="appListStatic">
+<li><img src="cortex.webp" width="64" height="64" alt=""><div><h3><a href="apps/cortex/">Cortex</a></h3><div class="role">Tasks</div><div class="status">In development</div><p>Your tasks, reminders and plan for the day, kept in one place so nothing slips.</p></div></li>
+<li><img src="metona.webp" width="64" height="64" alt=""><div><h3><a href="apps/metona/">Metona</a></h3><div class="role">Calendar and booking</div><div class="status">In development</div><p>Your calendar and bookings, in one place.</p></div></li>
+<li><img src="matthias.webp" width="64" height="64" alt=""><div><h3><a href="apps/matthias/">Matthias</a></h3><div class="role">Your chief of staff</div><div class="status">In use today</div><p>Tell Matthias what you need in plain words. It handles the follow-through across your calendar, your inbox and the other apps.</p></div></li>
+<li><img src="resonance.webp" width="64" height="64" alt=""><div><h3><a href="apps/resonance/">Resonance</a></h3><div class="role">Social media and content</div><div class="status">In development</div><p>Plans your posts, writes them in your voice, and never posts a claim you didn&#x27;t approve.</p></div></li>
+<li><img src="synapse.webp" width="64" height="64" alt=""><div><h3><a href="apps/synapse/">Synapse</a></h3><div class="role">The people you work with</div><div class="status">Planned</div><p>Remembers everyone you work with and shows you who needs a follow-up before they go cold.</p></div></li>
+<li><img src="coherence.webp" width="64" height="64" alt=""><div><h3><a href="apps/coherence/">Coherence</a></h3><div class="role">Messages and calls</div><div class="status">In development</div><p>Every conversation in one place, with what needs a reply at the top.</p></div></li>
+<li><img src="assets/house-of-data/HOD-icon-512.png" width="64" height="64" alt=""><div><h3><a href="apps/house-of-data/">House of Data</a></h3><div class="role">Everything you've made</div><div class="status">In development</div><p>Everything you&#x27;ve made or saved, found by asking for it.</p></div></li>
+</ul>
   </section>
   <section>
     <h2>The intelligence</h2>
-    <p>11 sits in the middle of it all. Every app shares what it learns with the others, so you never have to repeat yourself.</p>
-    <p>11 watches the whole picture and brings you what matters next.</p>
+    <p>11 sits in the middle of it all. The vision is for apps to share useful context with your permission, so you repeat yourself less.</p>
+    <p>11 is your guide to that vision. Cross-app intelligence is still being developed.</p>
   </section>
   <section>
     <p class="say">That's the tour. More apps are on the way, and 11 will be here when they land.</p>
   </section>
 </main>
 
-<div class="stage" id="stage" aria-hidden="true">
-  <canvas id="sky"></canvas>
+<div class="stage" id="stage" role="region" aria-label="Interactive ELVN OS tour">
+  <canvas id="sky" aria-hidden="true"></canvas>
 
-  <canvas id="char"></canvas>
+  <canvas id="char" aria-hidden="true"></canvas>
   <div class="eleven-flat" id="flat"><img src="eleven.webp" alt="" draggable="false"></div>
   <div id="tiles"></div>
-  <canvas id="fx"></canvas>
+  <canvas id="fx" aria-hidden="true"></canvas>
 
   <div class="layer hero-brand" id="heroBrand">
     <span class="welcome">Welcome to</span>
@@ -223,13 +246,13 @@ html.engine .hud{display:flex}
     <p class="wl">ELVN OS was built by one person with a simple belief.</p>
     <p class="wl">Technology should fit the person using it.</p>
     <p class="wl">It's made for neurodivergent entrepreneurs, and for anyone whose mind doesn't run on someone else's system.</p>
-    <p class="wl">Everything you use lives in one place, and it adapts to how you think.</p>
+    <p class="wl">The vision: independent apps that work together around the way you think.</p>
     <p class="wl goal">The goal: make your life ten times easier.</p>
   </div>
 
   <div class="layer caption" id="connectCap">
-    <div class="big">Every app, connected.</div>
-    <div class="small">What one app learns, the others know.</div>
+    <div class="big">A connected future.</div>
+    <div class="small">Independent apps. Shared context is the next chapter.</div>
   </div>
 
   <div class="layer panel" id="panel">
@@ -240,14 +263,15 @@ html.engine .hud{display:flex}
       <div class="status" id="pStatus"></div>
       <p class="desc" id="pDesc"></p>
       <div class="note" id="pNote"></div>
+      <a class="app-detail" id="pLink" href="apps/cortex/" tabindex="-1">Explore Cortex →</a>
     </div>
   </div>
 
   <div class="layer intel" id="intel">
     <p class="eyebrow">The intelligence</p>
     <h3>11 sits in the middle of it all.</h3>
-    <p>Every app shares what it learns with the others, so you never have to repeat yourself.</p>
-    <p>11 watches the whole picture and brings you what matters next.</p>
+    <p>The vision is for apps to share useful context with your permission, so you repeat yourself less.</p>
+    <p>11 is your guide to that vision. Cross-app intelligence is still being developed.</p>
   </div>
 
 
@@ -274,19 +298,19 @@ html.engine .hud{display:flex}
 (function(){
 const STAR = '<path d="M50 6 L56 44 L94 50 L56 56 L50 94 L44 56 L6 50 L44 44 Z" fill="#5ea4ff"/>';
 const APPS = [
-  {name:"Cortex", status:"In development", role:"Tasks", icon:"cortex",
+  {slug:"cortex", name:"Cortex", status:"In development", role:"Tasks", icon:"cortex",
    desc:"Your tasks, reminders and plan for the day, kept in one place so nothing slips."},
-  {name:"Metona", status:"In development", role:"Calendar and booking", icon:"metona",
+  {slug:"metona", name:"Metona", status:"In development", role:"Calendar and booking", icon:"metona",
    desc:"Your calendar and bookings, in one place."},
-  {name:"Matthias", status:"In use today", role:"Your chief of staff", icon:"shield",
+  {slug:"matthias", name:"Matthias", status:"In use today", role:"Your chief of staff", icon:"shield",
    desc:"Tell Matthias what you need in plain words. It handles the follow-through across your calendar, your inbox and the other apps."},
-  {name:"Resonance", status:"In development", role:"Social media and content", icon:"resonance",
+  {slug:"resonance", name:"Resonance", status:"In development", role:"Social media and content", icon:"resonance",
    desc:"Plans your posts, writes them in your voice, and never posts a claim you didn't approve."},
-  {name:"Synapse", status:"Planned", role:"The people you work with", icon:"synapse",
+  {slug:"synapse", name:"Synapse", status:"Planned", role:"The people you work with", icon:"synapse",
    desc:"Remembers everyone you work with and shows you who needs a follow-up before they go cold."},
-  {name:"Coherence", status:"In development", role:"Messages and calls", icon:"coherence",
+  {slug:"coherence", name:"Coherence", status:"In development", role:"Messages and calls", icon:"coherence",
    desc:"Every conversation in one place, with what needs a reply at the top."},
-  {name:"House of Data", status:"In development", role:"Everything you've made", icon:"files",
+  {slug:"house-of-data", name:"House of Data", status:"In development", role:"Everything you've made", icon:"files",
    desc:"Everything you've made or saved, found by asking for it."}
 ];
 const GLYPH = {
@@ -305,8 +329,7 @@ function iconHTML(a){
   if(a.icon==="shield") return '<div class="ico shield"><img src="matthias.webp" alt=""></div>';
   return '<div class="ico ph">'+GLYPH[a.icon]+'</div>';
 }
-document.getElementById("appListStatic").innerHTML = APPS.map(a =>
-  '<li><div style="width:64px">'+iconHTML(a).replace('class="ico','style="width:64px" class="ico')+'</div><div><h3>'+nameHTML(a)+'</h3><div class="role">'+a.role+'</div><div class="status" data-s="'+a.status+'">'+a.status+'</div><p>'+a.desc+'</p></div></li>').join("");
+
 window.ELVN={APPS,iconHTML,nameHTML};
 })();
 </script>
@@ -337,7 +360,8 @@ let W=0,H=0,DPR=1,mobile=false;
 
 /* tiles */
 const tiles = APPS.map(a=>{
-  const d=document.createElement("div"); d.className="tile";
+  const d=document.createElement("a"); d.className="tile";
+  d.href="apps/"+a.slug+"/"; d.setAttribute("aria-label","Explore "+a.name); d.tabIndex=-1;
   d.innerHTML=iconHTML(a)+'<div class="name">'+a.name+'</div>';
   tilesEl.appendChild(d); return {el:d, cx:0,cy:0, raw:0};
 });
@@ -614,11 +638,16 @@ function glowAt(x,y,r,a){
 
 /* ---------------- frame ---------------- */
 let freeRot=-Math.PI/2, last=performance.now(), T=0;
+const tilesPaused=()=>tilesEl.matches(":hover") || tilesEl.contains(document.activeElement);
+let tileLayoutKey="";
 
 function frame(now){
   const dt=Math.min(0.05,(now-last)/1000); last=now; T+=dt;
   mx=lerp(mx,tmx,0.05); my=lerp(my,tmy,0.05);
   const sy=window.scrollY; scrollVel=lerp(scrollVel,(sy-lastScroll)/Math.max(dt,0.001),0.2); lastScroll=sy;
+  const layoutKey=`${W}:${H}:${sy}`;
+  const holdTiles=tilesPaused() && tileLayoutKey===layoutKey;
+  tileLayoutKey=layoutKey;
 
   drawSky(T,dt);
   fctx.clearRect(0,0,W,H);
@@ -676,7 +705,7 @@ function frame(now){
   const Rr = mobile ? Math.min(size*0.62, W*0.5-50) : size*0.64;
   const tilt = mobile ? 0.78 : 0.42;
   const T0 = (mobile?base*0.17:base*0.16);
-  if(S.swirl>0) freeRot += dt*0.75*S.swirl;
+  if(S.swirl>0 && !holdTiles) freeRot += dt*0.75*S.swirl;
   const focusA = mobile ? 1.15 : 0.32;
   let tourRot = focusA - S.focus*STEP;
   tourRot += Math.PI*2*Math.round((freeRot-tourRot)/(Math.PI*2));
@@ -688,10 +717,16 @@ function frame(now){
     const r=Rr*(1+3.4*(1-e));
     const depth=Math.sin(a);
     const fw=Math.max(0,1-Math.abs(S.focus-i))*S.tourMode;
-    const s=(0.12+0.88*e)*(0.74+0.26*(depth+1)/2)*(1+0.42*fw);
+    const s=Math.max(44/T0,(0.12+0.88*e)*(0.74+0.26*(depth+1)/2)*(1+0.42*fw));
     const x=ringC.x+Math.cos(a)*r, y=ringC.y+Math.sin(a)*r*tilt;
     const dim = 1 - 0.55*S.tourMode*(1-fw);
     const op=clamp(e*3,0,1)*dim*(0.6+0.4*(depth+1)/2);
+    if(holdTiles) return;
+    const visible=raw>.95 && x-T0*s/2>=0 && x+T0*s/2<=W && y-T0*s/2>=44 && y+T0*s/2+24<=H-70;
+    if(!visible && document.activeElement===tl.el) document.querySelector(".browse-apps").focus({preventScroll:true});
+    tl.el.tabIndex=visible?0:-1;
+    tl.el.setAttribute("aria-hidden",String(!visible));
+    tl.el.style.pointerEvents=visible?"auto":"none";
     tl.el.style.width=T0+"px";
     tl.el.style.opacity=op.toFixed(3);
     tl.el.style.zIndex = depth>0 ? 30 : 10;
@@ -744,6 +779,7 @@ function setPanel(i){
   const sw=$("panelSwap"); sw.classList.add("out");
   setTimeout(()=>{
     const a=APPS[i];
+    $("pLink").href="apps/"+a.slug+"/"; $("pLink").textContent="Explore "+a.name+" →";
     $("pCount").textContent=`App ${i+1} of ${N}`;
     $("pName").innerHTML=nameHTML(a); $("pRole").textContent=a.role; $("pStatus").textContent=a.status; $("pStatus").dataset.s=a.status; $("pDesc").textContent=a.desc;
     $("pNote").textContent = ["cortex","shield","resonance","synapse","coherence","metona","files"].includes(a.icon) ? "" : "Placeholder icon. The real one is on the way.";
@@ -839,6 +875,11 @@ function currentScene(){
 }
 let lastIdx=-1;
 function onProgress(){
+  for(const el of document.querySelectorAll(".stage .layer,.speech .line")){
+    const visible=Number(getComputedStyle(el).opacity)>.5;
+    el.setAttribute("aria-hidden",String(!visible));
+    if(el.id==="panel"){ $("pLink").tabIndex=visible?0:-1; $("pLink").style.pointerEvents=visible?"auto":"none"; }
+  }
   if(S.tourMode>0.4) setPanel(clamp(Math.round(S.focus),0,N-1));
   const idx=currentScene();
   if(idx!==lastIdx){
@@ -855,6 +896,7 @@ function go(dir){
 $("nextBtn").addEventListener("click",()=>go(1));
 $("prevBtn").addEventListener("click",()=>go(-1));
 window.addEventListener("keydown",e=>{
+  if(e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.target.closest("a,button,input,textarea,select,[contenteditable]")) return;
   if(["ArrowDown","PageDown"," "].includes(e.key) && !e.target.closest("button")){ e.preventDefault(); go(1); }
   if(["ArrowUp","PageUp"].includes(e.key)){ e.preventDefault(); go(-1); }
 });
