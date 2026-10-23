@@ -302,7 +302,7 @@ function iconHTML(a){
   if(a.icon==="files") return '<div class="ico hod"><img src="assets/house-of-data/HOD-icon-512.png" width="512" height="512" alt=""></div>';
   if(a.icon==="cortex") return '<div class="ico"><img src="cortex.webp" alt=""></div>';
   if(["resonance","synapse","coherence","metona"].includes(a.icon)) return '<div class="ico"><img src="'+a.icon+'.webp" alt=""></div>';
-  if(a.icon==="shield") return '<div class="ico shield"><img src="matthias.webp" alt=""></div>';
+  if(a.icon==="shield") return '<div class="ico"><img src="assets/matthias/royal-seal-512.png" width="512" height="512" style="display:block;width:100%;height:auto" alt=""></div>';
   return '<div class="ico ph">'+GLYPH[a.icon]+'</div>';
 }
 document.getElementById("appListStatic").innerHTML = APPS.map(a =>
