@@ -235,8 +235,8 @@ html.engine .hud{display:flex}
   <div class="layer panel" id="panel">
     <div class="swap" id="panelSwap">
       <div class="count" id="pCount">App 1 of 7</div>
-      <h3 id="pName">Cortex</h3>
-      <div class="role" id="pRole">Tasks</div>
+      <h3 id="pName">Matthias</h3>
+      <div class="role" id="pRole">Your chief of staff</div>
       <div class="status" id="pStatus"></div>
       <p class="desc" id="pDesc"></p>
       <div class="note" id="pNote"></div>
@@ -274,18 +274,18 @@ html.engine .hud{display:flex}
 (function(){
 const STAR = '<path d="M50 6 L56 44 L94 50 L56 56 L50 94 L44 56 L6 50 L44 44 Z" fill="#5ea4ff"/>';
 const APPS = [
+  {name:"Matthias", status:"In use today", role:"Your chief of staff", icon:"shield",
+   desc:"Your main assistant. Talk through an idea, work out your next move and get help with the task in front of you."},
   {name:"Cortex", status:"In development", role:"Tasks", icon:"cortex",
    desc:"Turn what you need to do into a plan you can see. Tasks, habits and focus, with quick access inside Matthias."},
   {name:"Metona", status:"In development", role:"Calendar and booking", icon:"metona",
    desc:"Make room for appointments, commitments and the work between them. Calendar and booking tools, together."},
-  {name:"Matthias", status:"In use today", role:"Your chief of staff", icon:"shield",
-   desc:"Your main assistant. Talk through an idea, work out your next move and get help with the task in front of you."},
-  {name:"Resonance", status:"In development", role:"Social media and content", icon:"resonance",
-   desc:"Shape your ideas into content that sounds like you. Plan posts, refine the message and review it before publishing."},
   {name:"Synapse", status:"Planned", role:"The people you work with", icon:"synapse",
    desc:"Keep the people, conversations and next steps behind your business relationships connected."},
   {name:"Coherence", status:"In development", role:"Messages and calls", icon:"coherence",
    desc:"Bring messages and calls into a shared workspace, with the context you need to pick up the conversation."},
+  {name:"Resonance", status:"In development", role:"Social media and content", icon:"resonance",
+   desc:"Shape your ideas into content that sounds like you. Plan posts, refine the message and review it before publishing."},
   {name:"House of Data", status:"In development", role:"Everything you've made", icon:"files",
    desc:"Give your files, notes and finished work a home, with tools designed to help you find them again."}
 ];
